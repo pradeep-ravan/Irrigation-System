@@ -37,44 +37,6 @@ A modern web application built with React.js and Tailwind CSS for monitoring and
 - **Lucide React**: Icon library for visual elements
 - **Context API**: For state management across components
 
-## Project Structure
-
-```
-src/
-├── components/
-│   ├── Dashboard/
-│   │   ├── ZoneCard.jsx
-│   │   └── ZonesOverview.jsx
-│   ├── Schedule/
-│   │   ├── ScheduleModal.jsx
-│   │   └── ScheduleTable.jsx
-│   ├── History/
-│   │   ├── MoistureHistory.jsx
-│   │   └── WaterUsage.jsx
-│   ├── Weather/
-│   │   ├── CurrentWeather.jsx
-│   │   └── WeatherAdjustments.jsx
-│   ├── Layout/
-│   │   ├── Header.jsx
-│   │   └── Navigation.jsx
-│   ├── UI/
-│   │   └── Modal.jsx
-│   └── Tabs/
-│       ├── DashboardTab.jsx
-│       ├── ScheduleTab.jsx
-│       ├── HistoryTab.jsx
-│       └── WeatherTab.jsx
-├── context/
-│   └── IrrigationContext.jsx
-├── data/
-│   ├── mockZones.js
-│   ├── mockHistory.js
-│   └── mockWeather.js
-├── utils/
-│   └── helpers.js
-├── App.jsx
-└── index.js
-```
 
 ## Getting Started
 
