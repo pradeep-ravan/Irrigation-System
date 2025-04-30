@@ -6,6 +6,7 @@ A modern web application built with React.js and Tailwind CSS for monitoring and
 
 ## Features
 
+
 ### Dashboard
 - Real-time monitoring of soil moisture levels across multiple zones
 - Visual indicators for moisture status (normal, low, critical)
