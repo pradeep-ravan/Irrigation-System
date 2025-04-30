@@ -17,7 +17,7 @@ const ZonesOverview = () => {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {zones?.map(zone => (
+        {zones && zones?.map(zone => (
           <ZoneCard key={zone?.id} zone={zone} />
         ))}
       </div>
