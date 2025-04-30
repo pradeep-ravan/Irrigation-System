@@ -1,89 +1,104 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { initialZonesData } from '../data/mockZones';
+import * as api from '../api/apiService';
 
-const IrrigationContext = createContext();
-
-export const useIrrigation = () => useContext(IrrigationContext);
+export const IrrigationContext = createContext();
 
 export const IrrigationProvider = ({ children }) => {
-  const [zones, setZones] = useState(initialZonesData);
+  const [zones, setZones] = useState([]);
+  const [moistureHistory, setMoistureHistory] = useState([]);
+  const [waterUsage, setWaterUsage] = useState([]);
+  const [weather, setWeather] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedZone, setSelectedZone] = useState(null);
   const [showScheduleModal, setShowScheduleModal] = useState(false);
   const [scheduledDate, setScheduledDate] = useState('');
   const [scheduledTime, setScheduledTime] = useState('');
-  
+
   useEffect(() => {
-    const interval = setInterval(() => {
-      setZones(prevZones => 
-        prevZones?.map(zone => ({
-          ...zone,
-          currentMoisture: Math.max(5, Math.min(100, zone?.currentMoisture + (Math.random() * 2 - 1)))
-        }))
-      );
-    }, 5000);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        const [zonesData, moistureHistoryData, waterUsageData, weatherData] = await Promise.all([
+          api.fetchZones(),
+          api.fetchMoistureHistory(),
+          api.fetchWaterUsage(),
+          api.fetchWeatherData()
+        ]);
+        
+        setZones(zonesData);
+        setMoistureHistory(moistureHistoryData);
+        setWaterUsage(waterUsageData);
+        setWeather(weatherData);
+        setError(null);
+      } catch (err) {
+        setError('Failed to load data. Please check your connection.');
+        console.error('Error fetching data:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    return () => clearInterval(interval);
+    fetchData();
   }, []);
+
+  const handleWaterNow = async (zoneId) => {
+    try {
+      const result = await api.waterZoneNow(zoneId);
+      setZones(zones.map(zone => zone.id === zoneId ? result.zone : zone));
+    } catch (err) {
+      setError('Failed to initiate watering');
+      console.error('Error watering zone:', err);
+    }
+  };
 
   const handleScheduleWatering = (zone) => {
     setSelectedZone(zone);
+    
+    const defaultDate = new Date();
+    defaultDate.setDate(defaultDate.getDate() + 1); 
+    
+    setScheduledDate(defaultDate.toISOString().split('T')[0]);
+    setScheduledTime('07:00'); 
+    
     setShowScheduleModal(true);
-    
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(6, 0, 0);
-    
-    setScheduledDate(tomorrow.toISOString().split('T')[0]);
-    setScheduledTime('06:00');
   };
 
-  const saveSchedule = () => {
-    if (!scheduledDate || !scheduledTime) return;
-    
-    const scheduledDateTime = `${scheduledDate}T${scheduledTime}:00`;
-    
-    setZones(prevZones => 
-      prevZones?.map(zone => 
-        zone?.id === selectedZone?.id 
-          ? { ...zone, scheduledWatering: scheduledDateTime }
-          : zone
-      )
-    );
-    
-    setShowScheduleModal(false);
-  };
-
-  const handleWaterNow = (zoneId) => {
-    const now = new Date().toISOString();
-    
-    setZones(prevZones => 
-      prevZones?.map(zone => 
-        zone?.id === zoneId 
-          ? { 
-              ...zone, 
-              lastWatered: now, 
-              currentMoisture: Math.min(100, zone?.currentMoisture + 25),
-              status: "normal"
-            }
-          : zone
-      )
-    );
+  const saveSchedule = async () => {
+    try {
+      const scheduledDateTime = `${scheduledDate}T${scheduledTime}:00`;
+      
+      const result = await api.scheduleWatering(selectedZone.id, scheduledDateTime);
+      
+      setZones(zones.map(zone => 
+        zone.id === selectedZone.id ? result.zone : zone
+      ));
+      
+      setShowScheduleModal(false);
+    } catch (err) {
+      setError('Failed to schedule watering');
+      console.error('Error scheduling watering:', err);
+    }
   };
 
   const value = {
     zones,
-    setZones,
+    moistureHistory,
+    waterUsage,
+    weather,
+    loading,
+    error,
     selectedZone,
-    setSelectedZone,
     showScheduleModal,
     setShowScheduleModal,
     scheduledDate,
     setScheduledDate,
     scheduledTime,
     setScheduledTime,
+    handleWaterNow,
     handleScheduleWatering,
-    saveSchedule,
-    handleWaterNow
+    saveSchedule
   };
 
   return (
@@ -91,4 +106,12 @@ export const IrrigationProvider = ({ children }) => {
       {children}
     </IrrigationContext.Provider>
   );
+};
+
+export const useIrrigation = () => {
+  const context = useContext(IrrigationContext);
+  if (!context) {
+    throw new Error('useIrrigation must be used within an IrrigationProvider');
+  }
+  return context;
 };

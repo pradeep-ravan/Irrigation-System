@@ -1,8 +1,12 @@
 import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { moistureHistoryData } from '../../data/mockHistory';
+import { useIrrigation } from '../../context/IrrigationContext';
 
 const MoistureHistory = () => {
+  const { moistureHistory, loading } = useIrrigation();
+  
+  if (loading) return <div className="loading">Loading moisture history...</div>;
+  
   return (
     <div className="bg-white rounded-lg shadow-md p-4 mb-6">
       <div className="mb-4">
@@ -10,7 +14,7 @@ const MoistureHistory = () => {
         <div className="h-64">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
-              data={moistureHistoryData}
+              data={moistureHistory}
               margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
